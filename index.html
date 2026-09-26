@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>RoadSOS - Map & Safety</title>
+    <link rel="stylesheet" href="/style.css" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app" class="mobile-container">
+      <!-- Header -->
+      <header class="app-header">
+        <h1>RoadSOS</h1>
+        <button id="profile-btn" class="icon-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+      </header>
+
+      <!-- Map Area -->
+      <div id="map-container">
+        <div id="map"></div>
+      </div>
+
+      <!-- Search & Route Panel (Bottom Sheet style) -->
+      <div id="route-panel" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <h2>Where to?</h2>
+        <div class="input-group">
+          <span class="icon">📍</span>
+          <input type="text" id="source-input" placeholder="Current Location (Source)" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <span class="icon">🏁</span>
+          <input type="text" id="dest-input" placeholder="Destination" autocomplete="off" />
+        </div>
+        <button id="btn-generate-route" class="primary-btn">Generate Route</button>
+      </div>
+
+      <!-- Warning Popup (Hidden by default) -->
+      <div id="warning-popup" class="warning-overlay hidden">
+        <div class="warning-card">
+          <div class="warning-header">
+            <span class="warning-icon">⚠️</span>
+            <h3>ROAD SAFETY WARNING</h3>
+          </div>
+          <p id="warning-text">HIGH ACCIDENT-PRONE AREA AHEAD</p>
+          <div class="warning-details">
+            <p>You are approaching an area with a high historical accident risk.</p>
+            <ul>
+              <li>Risk Level: <strong id="warn-level" class="danger-text">HIGH</strong></li>
+              <li>Historical accidents: <strong id="warn-count">0</strong></li>
+              <li>Risk Score: <strong id="warn-score">0.0</strong></li>
+            </ul>
+          </div>
+          <div class="warning-actions">
+            <button id="btn-safer-route" class="secondary-btn">VIEW SAFER ROUTE</button>
+            <button id="btn-continue" class="primary-btn warning-btn">CONTINUE</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Legend Overlay -->
+      <div class="risk-legend">
+        <div class="legend-item"><span class="dot low"></span> Low</div>
+        <div class="legend-item"><span class="dot moderate"></span> Moderate</div>
+        <div class="legend-item"><span class="dot high"></span> High</div>
+        <div class="legend-item"><span class="dot very-high"></span> Very High</div>
+      </div>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

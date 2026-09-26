@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoadSOS - Hospital Emergency Dispatch Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navbar -->
+        <header class="top-nav">
+            <div class="brand">
+                <div class="brand-logo">
+                    <span class="cross">+</span>
+                </div>
+                <div>
+                    <h1>Road<span class="highlight">SOS</span> Emergency Portal</h1>
+                    <span class="subtext">TRAUMA RECEPTION & DISPATCH CONSOLE (PROTOTYPE)</span>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="status-indicator live">
+                    <span class="pulse-dot"></span>
+                    <span>FIRESTORE REAL-TIME SYNC</span>
+                </div>
+                <div class="hospital-badge">
+                    <span>Central Trauma Emergency Unit</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Panel: Live Incident Feed -->
+            <section class="incident-feed-panel">
+                <div class="panel-header">
+                    <h2>Live Emergency Incidents</h2>
+                    <span id="incidentCount" class="badge-count">0</span>
+                </div>
+                <div id="incidentsList" class="incidents-list">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Listening for incoming emergency alerts...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Incident Details & Map -->
+            <section class="incident-detail-panel" id="detailPanel">
+                <div class="empty-selection" id="emptySelection">
+                    <div class="empty-icon">🚨</div>
+                    <h3>No Incident Selected</h3>
+                    <p>Select an emergency alert from the live feed to inspect GPS crash site, sensor telemetry, and dispatch status.</p>
+                </div>
+
+                <div class="detail-content" id="detailContent" style="display: none;">
+                    <!-- Alert Status Banner -->
+                    <div class="alert-banner" id="alertBanner">
+                        <div>
+                            <span class="alert-severity" id="detailImpact">HIGH IMPACT CRASH</span>
+                            <h3 id="detailReportId">Report #---</h3>
+                            <span class="timestamp" id="detailTimestamp">---</span>
+                        </div>
+                        <div class="dispatch-actions">
+                            <label for="statusSelect">Dispatch Status:</label>
+                            <select id="statusSelect" class="status-select" onchange="updateSelectedStatus(this.value)">
+                                <option value="ACTIVE">⚠️ ACTIVE ALERT</option>
+                                <option value="AMBULANCE_EN_ROUTE">🚑 AMBULANCE EN ROUTE</option>
+                                <option value="ADMITTED">🏥 PATIENT ADMITTED</option>
+                                <option value="RESOLVED">✅ INCIDENT RESOLVED</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Crash Site Map -->
+                    <div class="map-wrapper">
+                        <div class="map-header">
+                            <span>📍 Incident GPS Coordinates: <strong id="detailGps">---</strong></span>
+                            <span id="detailAccuracy">±--m accuracy</span>
+                        </div>
+                        <div id="incidentMap" class="map-container"></div>
+                    </div>
+
+                    <!-- Information Cards Grid -->
+                    <div class="cards-grid">
+                        <!-- Rider Information -->
+                        <div class="info-card">
+                            <h4>👤 Rider Profile</h4>
+                            <div class="info-row"><span class="label">Name:</span> <span id="riderName">---</span></div>
+                            <div class="info-row"><span class="label">Email:</span> <span id="riderEmail">---</span></div>
+                            <div class="info-row"><span class="label">UID:</span> <span id="riderUid" class="mono">---</span></div>
+                            <div class="info-row"><span class="label">Verification:</span> <span id="detailVerification" class="badge-tag">---</span></div>
+                        </div>
+
+                        <!-- Emergency Contacts Dispatched -->
+                        <div class="info-card">
+                            <h4>📞 Emergency Contacts</h4>
+                            <div class="info-row"><span class="label">SMS Broadcast:</span> <span id="smsStatus" class="badge-tag">---</span></div>
+                            <div class="contacts-list" id="contactsList">
+                                <em>None specified</em>
+                            </div>
+                        </div>
+
+                        <!-- Detection Evidence & Sensor Telemetry -->
+                        <div class="info-card wide">
+                            <h4>⚡ Sensor Telemetry & Impact Evidence</h4>
+                            <div class="telemetry-grid">
+                                <div class="telemetry-box">
+                                    <span class="tele-val" id="teleGForce">3.8g</span>
+                                    <span class="tele-label">Peak G-Force</span>
+                                </div>
+                                <div class="telemetry-box">
+                                    <span class="tele-val" id="teleSpeed">42 km/h → 0</span>
+                                    <span class="tele-label">Deceleration</span>
+                                </div>
+                                <div class="telemetry-box">
+                                    <span class="tele-val" id="teleTilt">78.5°</span>
+                                    <span class="tele-label">Device Tilt</span>
+                                </div>
+                                <div class="telemetry-box">
+                                    <span class="tele-val" id="teleStationary">10s</span>
+                                    <span class="tele-label">Post-Event Immobility</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Assigned / Nearby Hospitals -->
+                        <div class="info-card wide">
+                            <h4>🏥 Recommended Trauma Departments</h4>
+                            <div class="hospital-info" id="hospitalInfo">
+                                <strong>Primary Trauma Center:</strong> <span id="primaryHospital">---</span>
+                                <p class="subtext">Pre-admission trauma notification sent via automated RoadSOS emergency network protocol.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer Disclaimer -->
+        <footer class="portal-footer">
+            <p><strong>PROTOTYPE NOTICE:</strong> This Hospital Emergency Portal represents the authorized trauma center receiving interface for the RoadSOS platform. In production, this integrates directly with state emergency services and emergency dispatch APIs.</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Firebase App & Firestore Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
